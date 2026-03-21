@@ -272,16 +272,16 @@ overflow: hidden;
 position: relative;
 flex: 0 0 auto;
 }
-.wheel-hour { width: 80px; }
+.wheel-hour { width: 110px; }
 .wheel-separator {
 font-size: 28px;
 font-weight: 600;
 color: var(--text);
 line-height: 1;
 z-index: 2;
-padding: 0 2px;
+padding: 0 6px;
 }
-.wheel-minute { width: 80px; }
+.wheel-minute { width: 110px; }
 
 .wheel-inner {
 transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -528,7 +528,7 @@ animation: fadeInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
   <div class="date-input-wrap">
     <input type="date" class="date-input" id="dateInput">
   </div>
-  <button class="date-today-btn" id="todayBtn">Aujourd'hui</button>
+  <button class="date-today-btn" id="todayBtn">Now</button>
 </div>
 
 <div class="city-list" id="cityList"></div>
@@ -643,6 +643,7 @@ let baseDate = new Date();
 let timeOffsetMs = 0;
 let editingCityIndex = null;
 let tickInterval = null;
+let frozenTime = null;
 
 function loadCities() {
   try {
@@ -664,6 +665,7 @@ function getSelectedDate() {
 }
 
 function getEffectiveNow() {
+  if (frozenTime) return frozenTime;
   const now = new Date();
   const selected = getSelectedDate();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -903,7 +905,7 @@ document.getElementById('pickerDone').addEventListener('click', () => {
   const pickedTotalMin = pickerHour * 60 + pickerMinute;
   const currentTotalMin = currentH * 60 + currentM;
   const diffMin = pickedTotalMin - currentTotalMin;
-  timeOffsetMs += diffMin * 60 * 1000;
+  frozenTime = new Date(now.getTime() + diffMin * 60 * 1000);
   document.getElementById('pickerOverlay').classList.remove('active');
   renderCities();
 });
@@ -923,11 +925,13 @@ function setDateToToday() {
   const d = String(now.getDate()).padStart(2, '0');
   dateInput.value = `${y}-${m}-${d}`;
   timeOffsetMs = 0;
+  frozenTime = null;
 }
 setDateToToday();
 
 dateInput.addEventListener('change', () => {
   timeOffsetMs = 0;
+  frozenTime = null;
   renderCities();
 });
 document.getElementById('todayBtn').addEventListener('click', () => {
